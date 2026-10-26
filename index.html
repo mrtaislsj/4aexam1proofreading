@@ -450,9 +450,9 @@
     <div id="gameplay-panel" class="screen-panel">
       <div class="status-hud">
         <span class="player-tag" id="hud-player-name">Player: Adventurer</span>
-        <span class="quest-tag" id="hud-quest-title">Trial 1 / 20</span>
+        <span class="quest-tag" id="hud-quest-title">Trial 1 / 25</span>
         <span class="pot-xp-tag" id="hud-potential-xp">Value: 100 XP</span>
-        <span class="xp-tag" id="hud-xp-score">XP: 0 / 2000</span>
+        <span class="xp-tag" id="hud-xp-score">XP: 0 / 2500</span>
       </div>
 
       <div class="pixel-viewport" id="viewport-graphic"></div>
@@ -489,7 +489,7 @@
     <div id="result-panel" class="screen-panel" style="text-align: center; padding: 30px 14px;">
       <div style="font-size: 3rem; margin-bottom: 8px;">🏆 QUEST COMPLETE! 🏆</div>
       <p style="color: #ff981f; font-size: 1.4rem;" id="hero-congrats"></p>
-      <div style="font-size: 2.6rem; color: #ffff00; margin: 20px 0;" id="final-xp-slot">0 / 2000 XP</div>
+      <div style="font-size: 2.6rem; color: #ffff00; margin: 20px 0;" id="final-xp-slot">0 / 2500 XP</div>
       <p id="final-evaluation" style="font-size: 1.35rem; color: #00ffff; margin-bottom: 24px;"></p>
       <button class="action-btn" style="max-width: 380px;" onclick="resetQuest()">Play Again 🔄</button>
     </div>
@@ -502,7 +502,7 @@
     let earnedXP = 0;
     let mistakesThisQuestion = 0;
     const MAX_XP_PER_Q = 100;
-    const TOTAL_POSSIBLE_XP = 2000;
+    const TOTAL_POSSIBLE_XP = 2500;
 
     const bgmAudio = document.getElementById("audio-adventure");
     const questCompleteAudio = document.getElementById("audio-questcomplete");
@@ -584,7 +584,6 @@
       fanfareNotes.forEach(n => playTone(n.f, 'square', n.d, n.t, 0.18));
     }
 
-    // Dynamic XP calculation: reduces by 25 XP per wrong tap/choice down to 25 XP floor
     function getCurrentPotentialXP() {
       return Math.max(25, MAX_XP_PER_Q - (mistakesThisQuestion * 25));
     }
@@ -604,7 +603,7 @@
       }
     }
 
-    // 20 Proofreading Questions Data
+    // 25 Proofreading Questions Data
     const proofreadData = [
       {
         tokens: ["I", "like", "play", "computer", "games", "in", "my", "spare", "time."],
@@ -765,6 +764,47 @@
         correctIndex: 2,
         fixedWord: "biggest",
         note: "Note: Short adjectives with a single vowel followed by a single consonant double the final letter before adding -est (big -> biggest)."
+      },
+      // --- NEW QUESTIONS 21 TO 25 ---
+      {
+        tokens: ["The", "green", "dress", "is", "beautifuler", "than", "the", "white", "dress."],
+        errorIndex: 4,
+        options: ["A. most beautiful", "B. more beautiful", "C. more beautifuler", "D. beautiful"],
+        correctIndex: 1,
+        fixedWord: "more beautiful",
+        note: "Note: For long adjectives (three or more syllables), use more + adjective to form the comparative. Do not add -er."
+      },
+      {
+        tokens: ["The", "big", "box", "of", "chocolate", "is", "more bigger", "than", "the", "small", "box."],
+        errorIndex: 6,
+        options: ["A. bigger", "B. more big", "C. biggest", "D. most big"],
+        correctIndex: 0,
+        fixedWord: "bigger",
+        note: "Note: Do not use more with 1-syllable adjectives ending in -er (never say \"more bigger\")."
+      },
+      {
+        tokens: ["I", "think", "'Three Rabbits'", "is", "more", "interesting", "then", "'Space Travel'."],
+        errorIndex: 6,
+        options: ["A. that", "B. than", "C. as", "D. of"],
+        correctIndex: 1,
+        fixedWord: "than",
+        note: "Note: Use than (not then) after comparative forms when comparing two items."
+      },
+      {
+        tokens: ["The", "doll", "is", "the", "more expensive", "toy", "in", "the", "shop."],
+        errorIndex: 4,
+        options: ["A. expensive", "B. expensivest", "C. most expensive", "D. more expensiver"],
+        correctIndex: 2,
+        fixedWord: "most expensive",
+        note: "Note: When comparing three or more things, use the superlative form the most + adjective."
+      },
+      {
+        tokens: ["The", "strawberry", "cake", "is", "most delicious", "cake", "in", "our", "shop."],
+        errorIndex: 4,
+        options: ["A. the most delicious", "B. more delicious", "C. deliciouser", "D. the more delicious"],
+        correctIndex: 0,
+        fixedWord: "the most delicious",
+        note: "Note: Superlative adjectives must include the definite article the before most (the most delicious)."
       }
     ];
 
@@ -821,7 +861,7 @@
 
     function renderStage() {
       const q = proofreadData[stepIndex];
-      mistakesThisQuestion = 0; // Reset mistakes for the new question
+      mistakesThisQuestion = 0;
 
       document.getElementById("hud-quest-title").textContent = `Trial ${stepIndex + 1} / ${proofreadData.length}`;
       document.getElementById("hud-xp-score").textContent = `XP: ${earnedXP} / ${TOTAL_POSSIBLE_XP}`;
@@ -852,7 +892,6 @@
         element.classList.add("target-active");
         openCorrectionModal(q.tokens[tappedIdx], q.options);
       } else {
-        // Tapped a correct word -> count as a mistake & deduct XP
         mistakesThisQuestion++;
         updatePotentialXPDisplay();
 
@@ -928,7 +967,6 @@
           fireConfetti();
         }, 400);
       } else {
-        // Incorrect MC choice -> count mistake, reduce XP, and disable wrong button
         mistakesThisQuestion++;
         updatePotentialXPDisplay();
         buttonEl.classList.add("wrong");
@@ -967,11 +1005,11 @@
 
       const evalEl = document.getElementById("final-evaluation");
       if (earnedXP === TOTAL_POSSIBLE_XP) {
-        evalEl.textContent = "🏆 Flawless Scribe of Gielinor! Maximum 2000 XP achieved without a single error!";
+        evalEl.textContent = "🏆 Flawless Scribe of Gielinor! Maximum 2500 XP achieved without a single error!";
         fireConfetti();
-      } else if (earnedXP >= 1500) {
+      } else if (earnedXP >= 1900) {
         evalEl.textContent = "⚔️ Outstanding work! You demonstrated sharp proofreading instincts!";
-      } else if (earnedXP >= 1000) {
+      } else if (earnedXP >= 1300) {
         evalEl.textContent = "🛡️ Well done! You completed the quest, but take your time to avoid point deductions!";
       } else {
         evalEl.textContent = "📜 Return to Lumbridge library and practice more to minimize penalties!";
